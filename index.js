@@ -35,7 +35,7 @@ http.createServer((req, res) => {
       console.log(logMessage);
 
       // Deploy App
-      const deploy = exec(`cd ${repo} && git pull && yarn && yarn build`);
+      const deploy = exec(`cd ${repo} && git pull`);
 
       deploy.on('exit', (code, signal) => {
         if (code === 0) {
