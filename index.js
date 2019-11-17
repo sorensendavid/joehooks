@@ -5,47 +5,58 @@ const FTP = require('ftp');
 const dir = require('node-dir');
 const path = require('path');
 
-const ftpHost = "deadlift.bluefangsolutions.com"
-const ftpPort = "2121"
-const ftpLogin = "tij.34381"
-const ftpPass = "bpKzlLWO"
-
-const secret = "";
-const repo = 'c:\\workspace\\sandbox\\Pitter_Pats';
-
 const client = new FTP();
-
 const paths = [];
 const filePaths = [];
 
 
-console.log("\nServer started. Listening...\n")
+// ************************************************************
+// Game server info:
+const ftpHost = "deadlift.bluefangsolutions.com" // FTP Host
+const ftpPort = "2121" // FTP Port
+const ftpLogin = "tij.34381" // FTP Username
+const ftpPass = "bpKzlLWO" // FTP Password
+
+// Web server info:
+const listenPort = process.env.PORT; // Web server listen port
+const secret = "hbw56yaw345b"; // Github secret
+const repo = 'c:\\workspace\\sandbox\\Pitter_Pats'; // Absolute path to mod repo on disk
+// ************************************************************
+
+
+console.log("\nStarting server. Listening...\n")
+
 http.createServer((req, res) => {
 
   let body = '';
   let valid = false;
 
   req.on('data', chunk => {
+    console.log("Incoming request. Checking secret.")
     let sig = "sha1=" + crypto.createHmac('sha1', secret).update(chunk.toString()).digest('hex');
     if (req.headers['x-hub-signature'] == sig) {
+      console.log("Secret accepted.")
       valid = true;
+    } else {
+      console.log("Secret failed.")
     }
     body += chunk.toString()
   });
 
   req.on('end', () => {
     if (valid) {
+      console.log("Grabbing commit info...")
 
       const github = JSON.parse(body);
       const logMessage = [];
-      logMessage.push(`Deploying ${github.commits.length} commits pushed by ${github.pusher.name}. <${github.compare}|Changes>`)
+      logMessage.push(`Deploying ${github.commits.length} commits pushed by ${github.pusher.name}.`)
 
       for (i = 0; i < github.commits.length; i++) {
-        let message = `> <${github.commits[i].url}|\`${github.commits[i].id.substring(0, 7)}\`> ${github.commits[i].message}`;
+        let message = `> ${github.commits[i].id.substring(0, 7)} ${github.commits[i].message}`;
         logMessage.push(message);
       }
 
-      console.log(logMessage);
+      console.log(logMessage.join('\n'));
 
       // Deploy App
       const deploy = exec(`cd ${dir} && git pull`);
@@ -53,6 +64,7 @@ http.createServer((req, res) => {
       deploy.on('exit', (code, signal) => {
         if (code === 0) {
           console.log("Successfully pulled changes from repo.");
+
           client.connect({
             "host": ftpHost,
             "port": ftpPort,
@@ -101,6 +113,6 @@ http.createServer((req, res) => {
     res.end('ok');
   })
 
-}).listen(process.env.PORT);
+}).listen(listenPort);
 
 
