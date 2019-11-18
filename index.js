@@ -18,9 +18,9 @@ const ftpLogin = "tij.34381" // FTP Username
 const ftpPass = "bpKzlLWO" // FTP Password
 
 // Web server info:
-const listenPort = process.env.PORT; // Web server listen port
+const listenPort = 9000; // Web server listen port
 const secret = "hbw56yaw345b"; // Github secret
-const repo = 'c:\\workspace\\sandbox\\Pitter_Pats'; // Absolute path to mod repo on disk
+const repo = 'C:\\Pitter_Pats'; // Absolute path to mod repo on disk
 // ************************************************************
 
 
