@@ -4,7 +4,6 @@ const FTP = require('ftp')
 const path = require('path')
 
 import { getChanges } from './Github'
-import { message } from './Discord'
 
 const client = new FTP()
 
