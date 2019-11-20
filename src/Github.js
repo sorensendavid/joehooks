@@ -259,7 +259,7 @@ export const logCommits = (body) => {
   const logMessage = []
   logMessage.push(`Deploying ${github.commits.length} commits pushed by ${github.pusher.name}.`)
 
-  for (i = 0; i < github.commits.length; i++) {
+  for (let i = 0; i < github.commits.length; i++) {
     let message = `> ${github.commits[i].id.substring(0, 7)} ${github.commits[i].message}`
     logMessage.push(message)
   }
