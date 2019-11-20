@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "nodemon -r esm index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -18,7 +18,10 @@
   },
   "homepage": "https://github.com/sorensendavid/joehooks#readme",
   "dependencies": {
+    "dotenv": "^8.2.0",
+    "esm": "^3.2.25",
     "ftp": "^0.3.10",
+    "moment": "^2.24.0",
     "node-dir": "^0.1.17",
     "nodemon": "^1.19.4"
   }

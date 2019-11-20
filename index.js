@@ -1,28 +1,21 @@
+require('dotenv').config()
 const http = require('http')
 const crypto = require('crypto')
 const { exec } = require('child_process')
-const FTP = require('ftp')
-const dir = require('node-dir')
-const path = require('path')
+import { localFiles } from './src/LocalFiles'
+import { tsLog } from './src/Timestamp'
 
-const client = new FTP()
-const paths = []
-const filePaths = []
+// Listen for request on process.env.HTTP_PORT
+// Check incoming request for process.env.GITHUB_SECRET
+// Grab commit info and output to discord channel
+// Pull in repo changes
+// Grab commits[].added and commits[].modified to be uploaded
+// Grab commits[].removed to be deleted from remote
+// Get local repo directory structure and mkdir on remote
+// Put files on remote
+// Delete files from remote
 
-// ************************************************************
-// Game server info:
-const ftpHost = "deadlift.bluefangsolutions.com" // FTP Host
-const ftpPort = "2121" // FTP Port
-const ftpLogin = "tij.34381" // FTP Username
-const ftpPass = "bpKzlLWO" // FTP Password
-
-// Web server info:
-const listenPort = 9000; // Web server listen port
-const secret = "hbw56yaw345b"; // Github secret
-const repo = 'C:\\Pitter_Pats'; // Absolute path to mod repo on disk
-// ************************************************************
-
-console.log("\nStarting server. Listening...\n")
+tsLog(`Webhook server started. Listening on port ${process.env.HTTP_PORT}.`)
 
 http.createServer((req, res) => {
 
@@ -30,20 +23,20 @@ http.createServer((req, res) => {
   let valid = false
 
   req.on('data', chunk => {
-    console.log("Incoming request. Checking secret.")
+    tsLog("Incoming request. Checking secret.")
     let sig = "sha1=" + crypto.createHmac('sha1', secret).update(chunk.toString()).digest('hex')
     if (req.headers['x-hub-signature'] == sig) {
-      console.log("Secret accepted.")
+      tsLog("Secret accepted.")
       valid = true
     } else {
-      console.log("Secret failed.")
+      tsLog("Stopping. Secret failed.")
     }
     body += chunk.toString()
   })
 
   req.on('end', () => {
     if (valid) {
-      console.log("Grabbing commit info...")
+      tsLog("Grabbing commit info...")
 
       const github = JSON.parse(body)
       const logMessage = []
@@ -54,58 +47,18 @@ http.createServer((req, res) => {
         logMessage.push(message)
       }
 
-      console.log(logMessage.join('\n'))
+      tsLog(logMessage.join('\n'))
 
       // Deploy App
       const deploy = exec(`cd ${repo} && git pull`)
 
       deploy.on('exit', (code, signal) => {
         if (code === 0) {
-          console.log("Successfully pulled changes from repo.")
+          tsLog("Successfully pulled changes from repo.")
 
-          client.connect({
-            "host": ftpHost,
-            "port": ftpPort,
-            "user": ftpLogin,
-            "password": ftpPass
-          })
 
-          client.on('ready', () => {
-            dir.files(repo, function (err, files) {
-              console.log('\nGetting local file info...\n')
-              if (err) throw err
-              files.forEach(file => {
-                let parsedPath = file.replace(repo + '\\', '')
-                if (!parsedPath.startsWith('.')) {
-                  filePaths.push(parsedPath)
-                }
-              })
-
-              filePaths.forEach(filePath => {
-                let parsedPath = path.dirname(filePath)
-                if (paths.indexOf(parsedPath) === -1 && parsedPath != '.') {
-                  paths.push(parsedPath)
-                }
-              })
-
-              console.log(`\nCreating ${paths.length} directories on game server...\n`)
-              paths.forEach(pth => {
-                client.mkdir(pth, true, err => { if (err) throw err })
-                console.log(pth, ' -- created.')
-              })
-
-              console.log(`\nUploading ${filePaths.length} files...\n`)
-              filePaths.forEach(file => {
-                console.log(file, ' -- uploaded.')
-                // client.lastMod(file, (err, lastModified) => {
-                //   // If last mod newer than file, upload file.
-                //   // client.put(`${repo}\\${file}`, file, err => { if (err) throw err })
-                // })
-              })
-            })
-          })
         } else {
-          console.log("There was a problem pulling changes from repo.")
+          tsLog("Stopping. There was a problem pulling changes from repo.")
         }
       })
 
@@ -114,6 +67,93 @@ http.createServer((req, res) => {
     res.end('ok')
   })
 
-}).listen(listenPort)
+}).listen(process.env.HTTP_PORT)
+
+// client.connect({
+//   "host": ftpHost,
+//   "port": ftpPort,
+//   "user": ftpLogin,
+//   "password": ftpPass
+// })
+
+// client.on('ready', () => {
+//   dir.files(repo, function (err, files) {
+//     tsLog('\nGetting local file info...\n')
+//     if (err) throw err
+//     files.forEach(file => {
+//       let parsedPath = file.replace(repo + '\\', '')
+//       if (!parsedPath.startsWith('.')) {
+//         filePaths.push(parsedPath)
+//       }
+//     })
+
+//     filePaths.forEach(filePath => {
+//       let parsedPath = path.dirname(filePath)
+//       if (paths.indexOf(parsedPath) === -1 && parsedPath != '.') {
+//         paths.push(parsedPath)
+//       }
+//     })
+
+//     tsLog(`\nCreating ${paths.length} directories on game server...\n`)
+//     paths.forEach(pth => {
+//       client.mkdir(pth, true, err => { if (err) throw err })
+//       tsLog(pth, ' -- created.')
+//     })
+
+//     tsLog(`\nUploading ${filePaths.length} files...\n`)
+//     filePaths.forEach(file => {
+//       tsLog(file, ' -- uploaded.')
+//       // client.lastMod(file, (err, lastModified) => {
+//       //   // If last mod newer than file, upload file.
+//       //   // client.put(`${repo}\\${file}`, file, err => { if (err) throw err })
+//       // })
+//     })
+//   })
+// })
 
 
+
+
+
+// client.on('ready', () => {
+//   dir.files(repo, function (err, files) {
+//     tsLog('\nGetting local file info...\n')
+//     if (err) throw err
+//     files.forEach(file => {
+//       let parsedPath = file.replace(repo + '\\', '')
+//       if (!parsedPath.startsWith('.')) {
+//         filePaths.push(parsedPath)
+//       }
+//     })
+
+//     filePaths.forEach(filePath => {
+//       let parsedPath = path.dirname(filePath)
+//       if (paths.indexOf(parsedPath) === -1 && parsedPath != '.') {
+//         paths.push(parsedPath)
+//       }
+//     })
+
+//     tsLog(`\nCreating ${paths.length} directories on game server...\n`)
+//     paths.forEach(pth => {
+//       client.mkdir(pth, true, err => { if (err) throw err })
+//       tsLog(pth, ' -- created.')
+//     })
+
+//     tsLog("Checking which files to upload...")
+//     tsLog(`\nUploading files...\n`)
+//     filePaths.forEach(file => {
+//       let remoteLastMod
+//       let localLastMod = new Date(fs.statSync(`${repo}\\${file}`).mtime)
+//       client.lastMod(file, (err, lastModified) => {
+//         remoteLastMod = new Date(lastModified)
+//         if (localLastMod.getTime() > remoteLastMod.getTime()) {
+//           tsLog(`Uploading ${file}`)
+//           client.put(`${repo}\\${file}`, file, err => {
+//             if (err) throw err
+//             tsLog(file, ' -- uploaded.')
+//           })
+//         }
+//       })
+//     })
+//   })
+// })
