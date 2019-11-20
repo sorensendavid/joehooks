@@ -32,7 +32,7 @@ http.createServer((req, res) => {
       logCommits(body)
 
       // Deploy App
-      const deploy = exec(`cd ${repo} && git pull`)
+      const deploy = exec(`cd ${process.env.LOCAL_REPO} && git pull`)
 
       deploy.on('exit', (code, signal) => {
         if (code === 0) {
