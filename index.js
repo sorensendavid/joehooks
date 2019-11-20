@@ -8,14 +8,17 @@ const client = new Discord.Client();
 
 import { upload } from './src/Bluefang'
 
-client.on('ready', () => {
-  const message = (message) => {
-    client.login(process.env.DISCORD_TOKEN);
-    client.channels.get('646643147362926592').send(message)
-  }
 
-  message(`Webhook server started. Listening on port ${process.env.HTTP_PORT}.`)
-  http.createServer((req, res) => {
+
+message(`Webhook server started. Listening on port ${process.env.HTTP_PORT}.`)
+
+http.createServer((req, res) => {
+
+  client.on('ready', () => {
+    const message = (message) => {
+      client.login(process.env.DISCORD_TOKEN);
+      client.channels.get('646643147362926592').send(message)
+    }
 
     let body = ''
     let valid = false
@@ -63,8 +66,8 @@ client.on('ready', () => {
       }
       res.end('ok')
     })
+  })
+}).listen(process.env.HTTP_PORT)
 
-  }).listen(process.env.HTTP_PORT)
-})
 
 
