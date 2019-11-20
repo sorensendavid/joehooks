@@ -16,7 +16,7 @@ http.createServer((req, res) => {
 
   req.on('data', chunk => {
     message("Incoming request. Checking secret.")
-    let sig = "sha1=" + crypto.createHmac('sha1', secret).update(chunk.toString()).digest('hex')
+    let sig = "sha1=" + crypto.createHmac('sha1', process.env.GITHUB_SECRET).update(chunk.toString()).digest('hex')
     if (req.headers['x-hub-signature'] == sig) {
       message("Secret accepted.")
       valid = true
