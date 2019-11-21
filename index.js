@@ -57,7 +57,7 @@ discord.on('ready', () => {
         deploy.on('exit', (code, signal) => {
           if (code === 0) {
             message("Successfully pulled changed from repo.")
-            const github = body
+            const github = JSON.parse(body)
             const changed = new Map()
             const added = []
             const modified = []
