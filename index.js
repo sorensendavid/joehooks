@@ -51,6 +51,7 @@ client.on('ready', () => {
         message(logMessage.join('\n'))
 
         // Deploy App
+        message(`cd ${process.env.LOCAL_REPO} && git pull`)
         const deploy = exec(`cd ${process.env.LOCAL_REPO} && git pull`)
 
         deploy.on('exit', (code, signal) => {
