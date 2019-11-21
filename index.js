@@ -24,21 +24,19 @@ discord.on('ready', () => {
     let valid = false
 
     req.on('data', chunk => {
-      message("Incoming request. Checking secret.")
+      // message("Incoming request. Checking secret.")
       let sig = "sha1=" + crypto.createHmac('sha1', process.env.GITHUB_SECRET).update(chunk.toString()).digest('hex')
       if (req.headers['x-hub-signature'] == sig) {
-        message("Secret accepted.")
+        // message("Secret accepted.")
         valid = true
       } else {
-        message("Stopping. Secret failed.")
+        // message("Stopping. Secret failed.")
       }
       body += chunk.toString()
     })
 
     req.on('end', () => {
       if (valid) {
-        message("Grabbing commit info...")
-
         const github = JSON.parse(body)
         const logMessage = []
         logMessage.push(`Deploying ${github.commits.length} commits pushed by ${github.pusher.name}.`)
@@ -51,7 +49,6 @@ discord.on('ready', () => {
         message(logMessage.join('\n'))
 
         // Deploy App
-        message(`cd ${process.env.LOCAL_REPO} && git pull`)
         const deploy = exec(`cd ${process.env.LOCAL_REPO} && git pull`)
 
         deploy.on('exit', (code, signal) => {
